@@ -5,6 +5,19 @@ var budgetController = (function(){
             this.id = id;
             this.description = description;
             this.value = value;
+            this.percentage = -1;
+        };
+        
+        Expense.prototype.calcPercentage = function(totalIncome){
+            if (totalIncome > 0){
+            this.percentage = Math.round((this.value/totalIncome) * 100);
+            }else{
+                this.percentage = -1;
+            }
+        };
+
+        Expense.prototype.getPercentage = function() {
+            return this.percentage
         };
 
         var Income = function(id, description, value){
@@ -89,6 +102,20 @@ var budgetController = (function(){
                 } else {
                     data.percentage = -1;
                 }
+            },
+
+            calculatePercentages: function(){
+                data.allItems.exp.forEach(function(cur){
+                    cur.calcPercentage(data.totals.inc);
+                });
+                
+            },
+
+            getPercentages: function(){
+                var allPerc = data.allItems.exp.map(function(cur){
+                    return cur.getPercentage();
+                });
+                return allPerc;
             },
 
             getBudget: function() {
@@ -186,6 +213,10 @@ var UIController = (function(){
             }
         },
 
+        displayPercentages: function(percentages){
+
+        },
+
         getDomStrings: function(){
             return DOMstrings;
         }
@@ -222,6 +253,18 @@ var Controller = (function(budgetCtrl, UICtrl){
         UIController.displayBudget(budget);
 
     };
+
+    var updatePercentages = function () {
+        //1. calculate percentages
+        budgetController.calculatePercentages();
+
+        //2. read them from budget controller
+        var percentages = budgetCtrl.getPercentages();
+
+        //3. Update the user interface
+        console.log(percentages);
+    };
+
     var ctrlAddItem = function() {
         var input, newItem;
         //1. Get the field input data
@@ -241,6 +284,9 @@ var Controller = (function(budgetCtrl, UICtrl){
        
         //5. calculate and update the budget
         updateBudget();
+
+        //6.update percentages
+        updatePercentages();
 
         }
 
